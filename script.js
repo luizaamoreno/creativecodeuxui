@@ -2,6 +2,7 @@
 let products = [];
 let cart = [];
 let editingIndex = -1;
+let nextProductId = 1; // Novo: para gerar códigos de produto sequenciais
 
 // Elementos do DOM
 const productForm = document.getElementById('product-form');
@@ -25,26 +26,41 @@ const editQuantity = document.getElementById('edit-quantity');
 const editUnit = document.getElementById('edit-unit');
 const closeModal = document.getElementsByClassName('close')[0];
 
+// Função para gerar código de produto
+function generateProductCode() {
+    const code = `PROD${String(nextProductId).padStart(4, '0')}`;
+    nextProductId++;
+    return code;
+}
+
 // Carregar dados do localStorage
 function loadData() {
     const storedProducts = localStorage.getItem('products');
     if (storedProducts) {
         products = JSON.parse(storedProducts);
-        renderProducts();
+        // Atualizar nextProductId baseado nos produtos existentes
+        const maxId = products.reduce((max, product) => {
+            const id = parseInt(product.code.slice(4));
+            return id > max ? id : max;
+        }, 0);
+        nextProductId = maxId + 1;
     }
 
     const storedCart = localStorage.getItem('cart');
     if (storedCart) {
         cart = JSON.parse(storedCart);
-        updateCartBadge();
-        renderCart();
     }
+
+    renderProducts();
+    updateCartBadge();
+    renderCart();
 }
 
 // Salvar dados no localStorage
 function saveData() {
     localStorage.setItem('products', JSON.stringify(products));
     localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.setItem('nextProductId', nextProductId.toString());
 }
 
 // Renderizar produtos
@@ -55,6 +71,7 @@ function renderProducts() {
         productCard.className = 'product-card';
         productCard.innerHTML = `
             <h3>${product.name}</h3>
+            <p>Código: ${product.code}</p>
             <p>R$ ${product.price.toFixed(2)} / ${product.unit}</p>
             <p>Quantidade: ${product.quantity}</p>
             <button onclick="addToCart(${index})">Adicionar ao Carrinho</button>
@@ -72,8 +89,9 @@ productForm.addEventListener('submit', (e) => {
     const price = parseFloat(document.getElementById('product-price').value);
     const quantity = parseFloat(document.getElementById('product-quantity').value);
     const unit = document.getElementById('product-unit').value;
+    const code = generateProductCode(); // Gerar código automaticamente
 
-    products.push({ name, price, quantity, unit });
+    products.push({ name, price, quantity, unit, code });
     saveData();
     renderProducts();
     productForm.reset();
@@ -89,9 +107,9 @@ function addToCart(index) {
 
     let quantity;
     if (product.unit === 'kg') {
-        quantity = parseFloat(prompt(`Quantos quilos de ${product.name} deseja adicionar? (Disponível: ${product.quantity.toFixed(3)} kg)`));
+        quantity = parseFloat(prompt(`Quantos quilos de ${product.name} (${product.code}) deseja adicionar? (Disponível: ${product.quantity.toFixed(3)} kg)`));
     } else {
-        quantity = parseInt(prompt(`Quantas unidades de ${product.name} deseja adicionar? (Disponível: ${product.quantity})`));
+        quantity = parseInt(prompt(`Quantas unidades de ${product.name} (${product.code}) deseja adicionar? (Disponível: ${product.quantity})`));
     }
 
     if (isNaN(quantity) || quantity <= 0) {
@@ -104,7 +122,7 @@ function addToCart(index) {
         return;
     }
 
-    const existingItem = cart.find(item => item.name === product.name);
+    const existingItem = cart.find(item => item.code === product.code);
 
     if (existingItem) {
         existingItem.quantity += quantity;
@@ -140,7 +158,7 @@ function renderCart() {
             `${item.quantity} ${item.unit}`;
 
         itemElement.innerHTML = `
-            <p>${item.name} - ${quantityDisplay} x R$ ${item.price.toFixed(2)} = R$ ${itemTotal.toFixed(2)}</p>
+            <p>${item.name} (${item.code}) - ${quantityDisplay} x R$ ${item.price.toFixed(2)} = R$ ${itemTotal.toFixed(2)}</p>
             <button onclick="removeFromCart(${index})">Remover</button>
         `;
         cartItems.appendChild(itemElement);
@@ -255,6 +273,8 @@ function editProduct(index) {
     editPrice.value = product.price;
     editQuantity.value = product.quantity;
     editUnit.value = product.unit;
+    // Adicione um campo para exibir o código do produto (somente leitura)
+    document.getElementById('edit-code').value = product.code;
     editModal.style.display = 'block';
 }
 
@@ -277,18 +297,19 @@ editForm.addEventListener('submit', (e) => {
     e.preventDefault();
     if (editingIndex === -1) return;
 
-    products[editingIndex] = {
+    const editedProduct = {
         name: editName.value,
         price: parseFloat(editPrice.value),
         quantity: parseFloat(editQuantity.value),
-        unit: editUnit.value
+        unit: editUnit.value,
+        code: products[editingIndex].code // Manter o código original
     };
 
+    products[editingIndex] = editedProduct;
     saveData();
     renderProducts();
     editModal.style.display = 'none';
     editingIndex = -1;
 });
-
 // Carregar dados ao iniciar
 loadData();
