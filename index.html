@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de PDV</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sistema de PDV - Mini Mercadinhos</h1>
+            <div id="cart-icon">
+                🛒
+                <span id="cart-badge">0</span>
+            </div>
+        </header>
+
+        <form id="product-form">
+            <input type="text" id="product-name" placeholder="Nome do Produto" required>
+            <input type="number" id="product-price" placeholder="Preço" step="0.01" required>
+            <input type="number" id="product-quantity" placeholder="Quantidade" step="0.01" required>
+            <select id="product-unit">
+                <option value="unidade">Unidade</option>
+                <option value="kg">Kg</option>
+            </select>
+            <button type="submit">Adicionar Produto</button>
+        </form>
+
+        <div id="product-grid"></div>
+
+        <div id="cart-menu">
+            <h2>Carrinho</h2>
+            <div id="cart-items"></div>
+            <div id="cart-total">Total: R$ 0.00</div>
+            <select id="payment-method">
+                <option value="">Selecione o método de pagamento</option>
+                <option value="credit">Crédito</option>
+                <option value="debit">Débito</option>
+                <option value="pix">PIX</option>
+                <option value="cash">Dinheiro</option>
+                <option value="food-voucher">Vale-alimentação</option>
+            </select>
+            <div id="cash-payment">
+                <input type="number" id="cash-amount" placeholder="Valor em dinheiro" step="0.01">
+                <div id="change"></div>
+            </div>
+            <button id="finish-payment">Finalizar Pagamento</button>
+            <button id="clear-cart">Limpar Carrinho</button>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Editar Produto</h2>
+            <form id="edit-form">
+                <input type="text" id="edit-name" placeholder="Nome do Produto" required>
+                <input type="number" id="edit-price" placeholder="Preço" step="0.01" required>
+                <input type="number" id="edit-quantity" placeholder="Quantidade" step="0.01" required>
+                <select id="edit-unit">
+                    <option value="unidade">Unidade</option>
+                    <option value="kg">Kg</option>
+                </select>
+                <button type="submit">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
